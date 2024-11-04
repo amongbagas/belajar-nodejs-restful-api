@@ -1,5 +1,5 @@
 import {validate} from "../validation/validation.js";
-import {userGetValidation, userLoginValidation, userRegisterValidation} from "../validation/user-validation.js";
+import {getUserValidation, userLoginValidation, userRegisterValidation} from "../validation/user-validation.js";
 import {prismaClient} from "../application/database.js";
 import {ResponseError} from "../error/response-error.js";
 import bcrypt from "bcrypt";
@@ -68,7 +68,7 @@ const login = async (request) => {
 }
 
 const get = async (username) => {
-    username = validate(userGetValidation, username);
+    username = validate(getUserValidation, username);
 
     const user = await prismaClient.user.findUnique({
         where: {
