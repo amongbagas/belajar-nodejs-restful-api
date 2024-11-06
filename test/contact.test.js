@@ -1,7 +1,7 @@
 import supertest from "supertest";
 import { web } from "../src/application/web.js";
 import { logger } from "../src/application/logging.js";
-import { addTestUser, removeTestUser, removeAllTestContact } from "./test-util.js";
+import { addTestUser, removeTestUser, removeAllTestContact, addTestContact, getTestContact } from "./test-util.js";
 
 describe('POST /api/contacts', () => {
     beforeEach(async () => {
@@ -47,3 +47,42 @@ describe('POST /api/contacts', () => {
         expect(result.body.errors).toBeDefined();
     });
 });
+
+describe('GET /api/contacts/:contactId', () => { 
+    beforeEach(async () => {
+        await addTestUser();
+        await addTestContact();
+    });
+
+    afterEach(async () => {
+        await removeAllTestContact();
+        await removeTestUser();
+    });
+
+    it('should can get contact', async () => {
+        const testContact = await getTestContact();
+
+        const result = await supertest(web)
+            .get('/api/contacts/' + testContact.id)
+            .set('Authorization', 'test')
+
+        logger.warn(result);
+        
+        expect(result.status).toBe(200);
+        expect(result.body.data.id).toBe(testContact.id);
+        expect(result.body.data.first_name).toBe(testContact.first_name);
+        expect(result.body.data.last_name).toBe(testContact.last_name);
+        expect(result.body.data.email).toBe(testContact.email);
+        expect(result.body.data.phone).toBe(testContact.phone);
+    });
+
+    it('should return 404 if contact id is not found', async () => {
+        const testContact = await getTestContact();
+
+        const result = await supertest(web)
+            .get("/api/contacts/" + (testContact.id + 1))
+            .set('Authorization', 'test');
+
+        expect(result.status).toBe(404);
+    });
+ });
